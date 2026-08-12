@@ -20,30 +20,30 @@ export default function Chip({
   variant = "country",
   className,
 }: ChipProps) {
+  const unselectedBg = variant === "country" ? "rgba(235,235,235,0.32)" : "#f9f9f9";
+
   return (
     <motion.button
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      whileTap={{ scale: 0.95 }}
-      animate={{ scale: 1 }}
-      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+      initial={false}
+      animate={{
+        backgroundColor: selected ? "#000000" : unselectedBg,
+        color: selected ? "#ffffff" : "#000000",
+        borderColor: selected ? "rgba(0,0,0,0)" : "#ffffff",
+        boxShadow:
+          selected && variant === "compact"
+            ? "0 8px 16px rgba(0,0,0,0.25)"
+            : "0 0px 0px rgba(0,0,0,0)",
+      }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      whileTap={{ scale: 0.95, transition: { type: "spring", stiffness: 500, damping: 30 } }}
+      whileHover={{ scale: 1.02, transition: { type: "spring", stiffness: 500, damping: 30 } }}
       className={cn(
-        "flex items-center justify-center gap-2 rounded-[10px] border-[0.5px] font-dm-sans transition-colors duration-200",
-        variant === "country" &&
-          cn(
-            "h-12 whitespace-nowrap px-4 py-2.5 text-lg tracking-[-0.72px]",
-            selected
-              ? "border-transparent bg-black text-white"
-              : "border-white bg-[rgba(235,235,235,0.32)] text-black"
-          ),
-        variant === "compact" &&
-          cn(
-            "h-11 w-full px-3 py-3 text-sm",
-            selected
-              ? "border-transparent bg-black text-white shadow-[0_8px_16px_rgba(0,0,0,0.25)]"
-              : "border-white bg-[#f9f9f9] text-[#a4a4a4]"
-          ),
+        "flex items-center justify-center gap-2 rounded-[10px] border-[0.5px] font-dm-sans",
+        variant === "country" && "h-12 whitespace-nowrap px-4 py-2.5 text-lg tracking-[-0.72px]",
+        variant === "compact" && "h-11 w-full px-3 py-3 text-sm",
         className
       )}
     >

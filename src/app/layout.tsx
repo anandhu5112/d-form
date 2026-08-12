@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Schibsted_Grotesk,
   Fustat,
@@ -48,6 +48,11 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "Ashwin on Finance | Desh",
   description: "Start your NRI investment journey with Desh.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

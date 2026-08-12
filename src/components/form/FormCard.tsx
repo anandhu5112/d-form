@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dispatch } from "react";
+import { useEffect, useRef, type Dispatch } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 import Step1Country from "@/components/form/Step1Country";
@@ -31,6 +31,12 @@ interface FormCardProps {
 }
 
 export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [state.step]);
+
   const isCurrentStepValid = () => {
     if (state.step === 1) return isStep1Valid(state);
     if (state.step === 2) return isStep2Valid(state);
@@ -87,12 +93,12 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
   return (
     <div className="flex h-full w-full flex-col">
       <div className="shrink-0 px-4 pt-6">
-        <h1 className="text-center font-geist text-[24px] font-medium tracking-[-0.56px] text-black">
+        <h1 className="font-geist text-[24px] font-medium tracking-[-0.56px] text-black">
           {STEP_HEADLINES[state.step]}
         </h1>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-6">
         {state.step === 1 && <Step1Country state={state} dispatch={dispatch} />}
         {state.step === 2 && <Step2About state={state} dispatch={dispatch} />}
         {state.step === 3 && <Step3Final state={state} dispatch={dispatch} />}
