@@ -13,7 +13,7 @@ export default function ScreenShell({ children, header, className }: ScreenShell
   return (
     <div className="relative z-10 h-[100dvh] w-full overflow-hidden p-4 md:flex md:items-center md:justify-center md:p-6">
       <div className="h-full w-full md:grid md:max-w-[1280px] md:grid-cols-12 md:gap-6">
-        <div className="flex h-full min-h-0 w-full flex-col md:col-span-4 md:col-start-5">
+        <div className="flex h-full min-h-0 w-full flex-col md:col-span-6 md:col-start-4">
           {header ? <div className="sticky top-0 z-10 shrink-0 pb-4">{header}</div> : null}
           <div
             className={cn(

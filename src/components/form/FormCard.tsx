@@ -99,14 +99,14 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
       </div>
 
       <div className="shrink-0 px-4 pb-6">
-        <div className="flex gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <motion.button
             type="button"
             onClick={handleBack}
             whileTap={{ scale: 0.97 }}
             whileHover={{ scale: 1.01 }}
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            className="flex h-12 shrink-0 items-center justify-center rounded-xl border border-[#bcbcbc] bg-white px-8 font-inter text-base font-medium tracking-[-0.32px] text-[#393939] hover:bg-zinc-50"
+            className="flex h-12 w-full min-w-0 items-center justify-center rounded-xl border border-[#bcbcbc] bg-white px-8 font-inter text-base font-medium tracking-[-0.32px] text-[#393939] hover:bg-zinc-50"
           >
             Back
           </motion.button>
@@ -117,7 +117,7 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
             whileTap={{ scale: 0.97 }}
             whileHover={{ scale: 1.01 }}
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            className="flex h-12 flex-1 items-center justify-center overflow-hidden rounded-xl bg-[#008A25] font-inter text-base font-medium tracking-[-0.32px] text-white hover:bg-[#008A25]/90 disabled:opacity-40"
+            className="flex h-12 w-full min-w-0 items-center justify-center overflow-hidden rounded-xl bg-[#008A25] font-inter text-base font-medium tracking-[-0.32px] text-white hover:bg-[#008A25]/90 disabled:opacity-40"
           >
             <AnimatePresence mode="wait" initial={false}>
               {state.submitting ? (
