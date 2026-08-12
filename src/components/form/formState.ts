@@ -22,6 +22,7 @@ export interface FormState {
   };
   financials: {
     profession: Profession | null;
+    incomeBracketId: string | null;
     accountStatus: AccountStatus | null;
     panStatus: PanStatus | null;
     addressProofs: AddressProof[];
@@ -43,6 +44,7 @@ export const initialFormState: FormState = {
   },
   financials: {
     profession: null,
+    incomeBracketId: null,
     accountStatus: null,
     panStatus: null,
     addressProofs: [],
@@ -58,6 +60,7 @@ export type FormAction =
   | { type: "SET_NAME"; value: string }
   | { type: "SET_PHONE_NUMBER"; value: string }
   | { type: "SET_PROFESSION"; value: Profession }
+  | { type: "SET_INCOME_BRACKET"; value: string }
   | { type: "SET_ACCOUNT_STATUS"; value: AccountStatus }
   | { type: "SET_PAN_STATUS"; value: PanStatus }
   | { type: "TOGGLE_ADDRESS_PROOF"; value: AddressProof }
@@ -95,6 +98,11 @@ export function formReducer(state: FormState, action: FormAction): FormState {
       return {
         ...state,
         financials: { ...state.financials, profession: action.value },
+      };
+    case "SET_INCOME_BRACKET":
+      return {
+        ...state,
+        financials: { ...state.financials, incomeBracketId: action.value },
       };
     case "SET_ACCOUNT_STATUS":
       return {
@@ -141,7 +149,8 @@ export function isStep2Valid(state: FormState) {
   return (
     state.identity.name.trim().length > 1 &&
     state.phone.number.trim().length >= 6 &&
-    state.financials.profession !== null
+    state.financials.profession !== null &&
+    state.financials.incomeBracketId !== null
   );
 }
 

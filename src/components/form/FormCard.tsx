@@ -66,6 +66,7 @@ export default function FormCard({ onClose }: FormCardProps) {
       },
       financials: {
         profession: state.financials.profession,
+        incomeBracketId: state.financials.incomeBracketId,
         accountStatus: state.financials.accountStatus,
         panStatus: state.financials.panStatus,
         addressProofs: state.financials.addressProofs,

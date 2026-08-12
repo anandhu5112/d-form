@@ -3,6 +3,7 @@
 import type { Dispatch } from "react";
 import { Input } from "@/components/ui/input";
 import Chip from "@/components/form/Chip";
+import { getIncomeBrackets } from "@/lib/income";
 import type { FormAction, FormState } from "@/components/form/formState";
 import type { Profession } from "@/lib/types";
 
@@ -20,6 +21,7 @@ const PROFESSION_OPTIONS: { value: Profession; label: string }[] = [
 
 export default function Step2About({ state, dispatch }: Step2AboutProps) {
   const { identity, phone, financials } = state;
+  const incomeBrackets = getIncomeBrackets(identity.country.currency);
 
   return (
     <div className="flex flex-col gap-8">
@@ -74,6 +76,25 @@ export default function Step2About({ state, dispatch }: Step2AboutProps) {
               selected={financials.profession === option.value}
               onSelect={() =>
                 dispatch({ type: "SET_PROFESSION", value: option.value })
+              }
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        <p className="font-geist text-lg font-medium leading-[27px] text-black">
+          What is your annual income?
+        </p>
+        <div className="flex flex-col gap-3">
+          {incomeBrackets.map((bracket) => (
+            <Chip
+              key={bracket.id}
+              label={bracket.label}
+              variant="compact"
+              selected={financials.incomeBracketId === bracket.id}
+              onSelect={() =>
+                dispatch({ type: "SET_INCOME_BRACKET", value: bracket.id })
               }
             />
           ))}

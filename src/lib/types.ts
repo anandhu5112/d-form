@@ -27,6 +27,7 @@ export interface EnquiryFormPayload {
   };
   financials: {
     profession: Profession | null;
+    incomeBracketId: string | null;
     accountStatus: AccountStatus | null;
     panStatus: PanStatus | null;
     addressProofs: AddressProof[];
