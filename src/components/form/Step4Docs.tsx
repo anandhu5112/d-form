@@ -5,7 +5,7 @@ import Chip from "@/components/form/Chip";
 import type { FormAction, FormState } from "@/components/form/formState";
 import type { AccountStatus, AddressProof, PanStatus } from "@/lib/types";
 
-interface Step3FinalProps {
+interface Step4DocsProps {
   state: FormState;
   dispatch: Dispatch<FormAction>;
 }
@@ -31,7 +31,7 @@ const ADDRESS_PROOF_OPTIONS: { value: AddressProof; label: string }[] = [
   { value: "none", label: "I don't have any" },
 ];
 
-export default function Step3Final({ state, dispatch }: Step3FinalProps) {
+export default function Step4Docs({ state, dispatch }: Step4DocsProps) {
   const { financials } = state;
 
   return (

@@ -9,7 +9,7 @@ import type {
   Profession,
 } from "@/lib/types";
 
-export const TOTAL_STEPS = 3;
+export const TOTAL_STEPS = 4;
 
 export interface FormState {
   step: number;
@@ -149,14 +149,17 @@ export function isStep1Valid(state: FormState) {
 
 export function isStep2Valid(state: FormState) {
   return (
-    state.identity.name.trim().length > 1 &&
-    state.phone.number.trim().length >= 6 &&
-    state.financials.profession !== null &&
-    state.financials.incomeBracketId !== null
+    state.identity.name.trim().length > 1 && state.phone.number.trim().length >= 6
   );
 }
 
 export function isStep3Valid(state: FormState) {
+  return (
+    state.financials.profession !== null && state.financials.incomeBracketId !== null
+  );
+}
+
+export function isStep4Valid(state: FormState) {
   return (
     state.financials.accountStatus !== null &&
     state.financials.panStatus !== null &&

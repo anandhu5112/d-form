@@ -4,14 +4,16 @@ import { useEffect, useRef, type Dispatch } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 import Step1Country from "@/components/form/Step1Country";
-import Step2About from "@/components/form/Step2About";
-import Step3Final from "@/components/form/Step3Final";
+import Step2NameContact from "@/components/form/Step2NameContact";
+import Step3ProfessionIncome from "@/components/form/Step3ProfessionIncome";
+import Step4Docs from "@/components/form/Step4Docs";
 import SuccessState from "@/components/form/SuccessState";
 import {
   TOTAL_STEPS,
   isStep1Valid,
   isStep2Valid,
   isStep3Valid,
+  isStep4Valid,
   type FormAction,
   type FormState,
 } from "@/components/form/formState";
@@ -21,7 +23,8 @@ import type { EnquiryFormPayload } from "@/lib/types";
 const STEP_HEADLINES: Record<number, string> = {
   1: "Where do you currently live?",
   2: "Tell about yourself",
-  3: "Final details",
+  3: "Your profession and income",
+  4: "Final details",
 };
 
 interface FormCardProps {
@@ -41,6 +44,7 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
     if (state.step === 1) return isStep1Valid(state);
     if (state.step === 2) return isStep2Valid(state);
     if (state.step === 3) return isStep3Valid(state);
+    if (state.step === 4) return isStep4Valid(state);
     return false;
   };
 
@@ -98,10 +102,16 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
         </h1>
       </div>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-6">
+      <div
+        ref={scrollRef}
+        className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-4 py-6"
+      >
         {state.step === 1 && <Step1Country state={state} dispatch={dispatch} />}
-        {state.step === 2 && <Step2About state={state} dispatch={dispatch} />}
-        {state.step === 3 && <Step3Final state={state} dispatch={dispatch} />}
+        {state.step === 2 && <Step2NameContact state={state} dispatch={dispatch} />}
+        {state.step === 3 && (
+          <Step3ProfessionIncome state={state} dispatch={dispatch} />
+        )}
+        {state.step === 4 && <Step4Docs state={state} dispatch={dispatch} />}
       </div>
 
       <div className="shrink-0 px-4 pb-6">
@@ -151,11 +161,9 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
             </AnimatePresence>
           </motion.button>
         </div>
-        <p className="mt-4 text-center font-inter text-[10px] leading-[15px] tracking-[-0.2px] text-[#b1b1b1]">
+        <p className="mt-4 whitespace-nowrap text-center font-inter text-[9px] leading-[15px] tracking-[-0.2px] text-[#b1b1b1]">
           Managed by <span className="font-medium text-[#676767]">Desh</span>, the
-          investment platform
-          <br />
-          behind Ashwin on Finance.
+          investment platform behind Ashwin on Finance.
         </p>
       </div>
     </div>
