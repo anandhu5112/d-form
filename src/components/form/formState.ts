@@ -9,6 +9,8 @@ import type {
   Profession,
 } from "@/lib/types";
 
+export const TOTAL_STEPS = 3;
+
 export interface FormState {
   step: number;
   identity: {

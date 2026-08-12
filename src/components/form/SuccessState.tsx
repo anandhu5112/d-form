@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { motion } from "motion/react";
 import type { FormState } from "@/components/form/formState";
 
 interface SuccessStateProps {
@@ -37,7 +38,7 @@ export default function SuccessState({ onDone }: SuccessStateProps) {
         </div>
 
         <div className="flex flex-col items-center gap-6 text-center">
-          <p className="font-geist text-[28px] font-medium tracking-[-0.56px] text-[#13a73a]">
+          <p className="font-geist text-[24px] font-medium tracking-[-0.56px] text-[#13a73a]">
             Congrats
           </p>
           <p className="font-geist text-lg font-medium leading-normal text-black">
@@ -74,13 +75,16 @@ export default function SuccessState({ onDone }: SuccessStateProps) {
           </div>
         </div>
 
-        <button
+        <motion.button
           type="button"
           onClick={onDone}
+          whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.01 }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
           className="flex h-12 w-full items-center justify-center rounded-xl bg-[#008A25] font-inter text-sm font-medium text-white hover:bg-[#008A25]/90"
         >
           Done
-        </button>
+        </motion.button>
       </div>
     </div>
   );

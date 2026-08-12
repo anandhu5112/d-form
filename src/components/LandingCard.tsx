@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import { motion } from "motion/react";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface LandingCardProps {
   onGetStarted: () => void;
@@ -34,19 +36,22 @@ export default function LandingCard({ onGetStarted }: LandingCardProps) {
           </div>
         </div>
 
-        <p className="max-w-[280px] text-center font-geist text-[28px] font-medium tracking-[-0.56px] text-[#13a73a]">
+        <p className="max-w-[280px] text-center font-geist text-[24px] font-medium tracking-[-0.56px] text-[#13a73a]">
           Let&apos;s build your portfolio together.
         </p>
       </div>
 
-      <div className="relative w-full flex-1 md:h-[260px] md:flex-none">
-        <Image
-          src="/assets/coins.png"
-          alt=""
-          fill
-          className="object-contain"
-          sizes="(min-width: 768px) 320px, 60vw"
-        />
+      <div className="aspect-square w-full">
+        <div className="-mx-4 h-full overflow-hidden md:-mx-10">
+          <video
+            src="/assets/coins.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="h-full w-full object-cover"
+          />
+        </div>
       </div>
 
       <div className="flex w-full flex-col items-center gap-8">
@@ -58,12 +63,19 @@ export default function LandingCard({ onGetStarted }: LandingCardProps) {
             Takes less than 1 min
           </p>
         </div>
-        <Button
+        <motion.button
+          type="button"
           onClick={onGetStarted}
-          className="h-12 w-full rounded-xl bg-[#008A25] font-dm-sans text-base font-medium tracking-[-0.64px] text-white hover:bg-[#008A25]/90"
+          whileTap={{ scale: 0.97 }}
+          whileHover={{ scale: 1.01 }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          className={cn(
+            buttonVariants({ variant: "default", size: "default" }),
+            "h-12 w-full rounded-xl bg-[#008A25] font-dm-sans text-base font-medium tracking-[-0.64px] text-white hover:bg-[#008A25]/90"
+          )}
         >
           Get Started
-        </Button>
+        </motion.button>
       </div>
     </div>
   );

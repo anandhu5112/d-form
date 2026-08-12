@@ -1,21 +1,22 @@
 "use client";
 
+import type { Dispatch } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { Loader2 } from "lucide-react";
-import ProgressBar from "@/components/form/ProgressBar";
 import Step1Country from "@/components/form/Step1Country";
 import Step2About from "@/components/form/Step2About";
 import Step3Final from "@/components/form/Step3Final";
 import SuccessState from "@/components/form/SuccessState";
 import {
-  useFormState,
+  TOTAL_STEPS,
   isStep1Valid,
   isStep2Valid,
   isStep3Valid,
+  type FormAction,
+  type FormState,
 } from "@/components/form/formState";
 import { submitForm } from "@/lib/submitForm";
 import type { EnquiryFormPayload } from "@/lib/types";
-
-const TOTAL_STEPS = 3;
 
 const STEP_HEADLINES: Record<number, string> = {
   1: "Where do you currently live?",
@@ -24,12 +25,12 @@ const STEP_HEADLINES: Record<number, string> = {
 };
 
 interface FormCardProps {
+  state: FormState;
+  dispatch: Dispatch<FormAction>;
   onClose: () => void;
 }
 
-export default function FormCard({ onClose }: FormCardProps) {
-  const [state, dispatch] = useFormState();
-
+export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
   const isCurrentStepValid = () => {
     if (state.step === 1) return isStep1Valid(state);
     if (state.step === 2) return isStep2Valid(state);
@@ -85,9 +86,8 @@ export default function FormCard({ onClose }: FormCardProps) {
 
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="shrink-0 px-4 pt-4">
-        <ProgressBar step={state.step} totalSteps={TOTAL_STEPS} />
-        <h1 className="mt-8 text-center font-geist text-[28px] font-medium tracking-[-0.56px] text-black">
+      <div className="shrink-0 px-4 pt-6">
+        <h1 className="text-center font-geist text-[24px] font-medium tracking-[-0.56px] text-black">
           {STEP_HEADLINES[state.step]}
         </h1>
       </div>
@@ -100,25 +100,50 @@ export default function FormCard({ onClose }: FormCardProps) {
 
       <div className="shrink-0 px-4 pb-6">
         <div className="flex gap-4">
-          <button
+          <motion.button
             type="button"
             onClick={handleBack}
+            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.01 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
             className="flex h-12 shrink-0 items-center justify-center rounded-xl border border-[#bcbcbc] bg-white px-8 font-inter text-base font-medium tracking-[-0.32px] text-[#393939] hover:bg-zinc-50"
           >
             Back
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             type="button"
             onClick={handlePrimaryAction}
             disabled={!isCurrentStepValid() || state.submitting}
-            className="flex h-12 flex-1 items-center justify-center rounded-xl bg-[#008A25] font-inter text-base font-medium tracking-[-0.32px] text-white hover:bg-[#008A25]/90 disabled:opacity-40"
+            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.01 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            className="flex h-12 flex-1 items-center justify-center overflow-hidden rounded-xl bg-[#008A25] font-inter text-base font-medium tracking-[-0.32px] text-white hover:bg-[#008A25]/90 disabled:opacity-40"
           >
-            {state.submitting ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              primaryLabel
-            )}
-          </button>
+            <AnimatePresence mode="wait" initial={false}>
+              {state.submitting ? (
+                <motion.span
+                  key="loading"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-center justify-center"
+                >
+                  <Loader2 className="size-4 animate-spin" />
+                </motion.span>
+              ) : (
+                <motion.span
+                  key={primaryLabel}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  {primaryLabel}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
         </div>
         <p className="mt-4 text-center font-inter text-[10px] leading-[15px] tracking-[-0.2px] text-[#b1b1b1]">
           Managed by <span className="font-medium text-[#676767]">Desh</span>, the

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Dispatch } from "react";
-import { Input } from "@/components/ui/input";
+import FormInput from "@/components/form/FormInput";
 import Chip from "@/components/form/Chip";
 import { getIncomeBrackets } from "@/lib/income";
 import type { FormAction, FormState } from "@/components/form/formState";
@@ -27,7 +27,7 @@ export default function Step2About({ state, dispatch }: Step2AboutProps) {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-5">
         <p className="font-geist text-lg font-medium text-black">Whats your name</p>
-        <Input
+        <FormInput
           placeholder="Enter here"
           value={identity.name}
           onChange={(e) => dispatch({ type: "SET_NAME", value: e.target.value })}
@@ -44,7 +44,7 @@ export default function Step2About({ state, dispatch }: Step2AboutProps) {
             <span className="flex h-12 shrink-0 items-center rounded-[10px] border-[0.5px] border-white bg-[#f9f9f9] px-3 font-geist text-sm text-[#393939]">
               {identity.country.dialCode}
             </span>
-            <Input
+            <FormInput
               inputMode="numeric"
               placeholder="Phone number"
               value={phone.number}
@@ -54,7 +54,8 @@ export default function Step2About({ state, dispatch }: Step2AboutProps) {
                   value: e.target.value.replace(/[^\d\s]/g, ""),
                 })
               }
-              className="h-12 flex-1 rounded-[10px] border-white bg-[#f9f9f9] font-geist text-sm placeholder:text-[#a4a4a4]"
+              className="h-12 rounded-[10px] border-white bg-[#f9f9f9] font-geist text-sm placeholder:text-[#a4a4a4]"
+              wrapperClassName="flex-1"
             />
           </div>
           <p className="font-geist text-[10px] text-black">
