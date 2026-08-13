@@ -4,17 +4,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
-  --font-schibsted: var(--font-schibsted-grotesk);
-  --font-fustat: var(--font-fustat);
   --font-inter: var(--font-inter);
-  --font-noto: var(--font-noto-sans);
   --font-geist: var(--font-geist);
   --font-dm-sans: var(--font-dm-sans);
-  --font-heading: var(--font-fustat);
+  --font-heading: var(--font-geist);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -128,8 +126,10 @@
   }
   html,
   body {
-    height: 100%;
-    overflow: hidden;
+    /* min-height, not height: when the viewport is shorter than the shell's
+       floor (keyboard open, landscape), the document must be able to scroll so
+       the focused field and footer buttons stay reachable. */
+    min-height: 100%;
     overscroll-behavior: none;
   }
   body {
@@ -138,9 +138,39 @@
   html {
     @apply font-sans;
   }
+
+  /* Keyboard-open / short-landscape: never let a focused control end up flush
+     against the sticky footer. */
+  input,
+  button {
+    scroll-margin-block: 5rem;
+  }
+
+  /* Visible keyboard focus. The design ships no focus styling at all, which
+     leaves switch-access and external-keyboard users with no position cue. */
+  :focus-visible {
+    outline: 2px solid #00701e;
+    outline-offset: 2px;
+  }
 }
 
 @layer utilities {
+  /* Hover feedback that cannot fire on touch. Tailwind's `hover:` utilities
+     compile to a bare `:hover`, which Android/iOS latch on tap — leaving the
+     button visibly stuck until the user taps elsewhere. This audience is ~99%
+     touch, so hover lives behind an explicit capability query instead. */
+  .hover-darken {
+    transition: filter 160ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .hover-darken:hover {
+      filter: brightness(0.92);
+    }
+  }
+
+  /* Built-in CSS easings are too soft to read as intentional; the curve below
+     (0.23, 1, 0.32, 1) is a stronger ease-out. */
   @keyframes card-in {
     from {
       opacity: 0;
@@ -153,17 +183,36 @@
   }
 
   .animate-card-in {
-    animation: card-in 320ms ease-out both;
+    animation: card-in 280ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  /* Button label swap. CSS, not Motion: this runs off the main thread and
+     `both` guarantees it settles at opacity 1 even if rAF is throttled or the
+     tab is backgrounded. A JS-driven version can strand the label invisible. */
+  @keyframes label-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-label-in {
+    animation: label-in 150ms cubic-bezier(0.23, 1, 0.32, 1) both;
   }
 
   @keyframes success-pop {
     from {
       opacity: 0;
-      transform: scale(0.6);
+      /* was scale(0.6) — nothing in the real world appears from near-nothing */
+      transform: scale(0.9);
     }
     60% {
       opacity: 1;
-      transform: scale(1.06);
+      transform: scale(1.04);
     }
     to {
       opacity: 1;
@@ -172,7 +221,7 @@
   }
 
   .animate-success-pop {
-    animation: success-pop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation: success-pop 340ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
 
   @keyframes success-check-draw {
@@ -192,6 +241,9 @@
 
   @media (prefers-reduced-motion: reduce) {
     .animate-card-in {
+      animation: none;
+    }
+    .animate-label-in {
       animation: none;
     }
     .animate-success-pop {

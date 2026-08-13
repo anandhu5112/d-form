@@ -12,7 +12,7 @@ export default function Home() {
   const [state, dispatch] = useFormState();
 
   return (
-    <main className="relative h-[100dvh] w-full overflow-hidden bg-[#F7F7F7]">
+    <main className="relative min-h-[100dvh] w-full bg-[#F7F7F7]">
       {!showForm ? (
         <LandingHero onGetStarted={() => setShowForm(true)} />
       ) : (
@@ -27,7 +27,14 @@ export default function Home() {
             ) : null
           }
         >
-          <FormCard state={state} dispatch={dispatch} onClose={() => setShowForm(false)} />
+          <FormCard
+            state={state}
+            dispatch={dispatch}
+            onClose={() => {
+              setShowForm(false);
+              dispatch({ type: "RESET" });
+            }}
+          />
         </ScreenShell>
       )}
     </main>

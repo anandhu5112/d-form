@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dispatch } from "react";
+import { useId, type Dispatch } from "react";
 import Chip from "@/components/form/Chip";
 import { getIncomeBrackets } from "@/lib/income";
 import type { FormAction, FormState } from "@/components/form/formState";
@@ -24,19 +24,26 @@ export default function Step3ProfessionIncome({
 }: Step3ProfessionIncomeProps) {
   const { identity, financials } = state;
   const incomeBrackets = getIncomeBrackets(identity.country.currency);
+  const professionLabelId = useId();
+  const incomeLabelId = useId();
 
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-5">
-        <p className="font-geist text-lg font-medium text-black">
+        <p id={professionLabelId} className="font-geist text-lg font-medium text-black">
           What is your profession?
         </p>
-        <div className="grid grid-cols-2 gap-3">
+        <div
+          role="radiogroup"
+          aria-labelledby={professionLabelId}
+          className="grid grid-cols-2 gap-3"
+        >
           {PROFESSION_OPTIONS.map((option) => (
             <Chip
               key={option.value}
               label={option.label}
               variant="compact"
+              selectionMode="single"
               selected={financials.profession === option.value}
               onSelect={() =>
                 dispatch({ type: "SET_PROFESSION", value: option.value })
@@ -47,15 +54,23 @@ export default function Step3ProfessionIncome({
       </div>
 
       <div className="flex flex-col gap-6">
-        <p className="font-geist text-lg font-medium leading-[27px] text-black">
+        <p
+          id={incomeLabelId}
+          className="font-geist text-lg font-medium leading-[27px] text-black"
+        >
           What is your annual income?
         </p>
-        <div className="flex flex-col gap-3">
+        <div
+          role="radiogroup"
+          aria-labelledby={incomeLabelId}
+          className="flex flex-col gap-3"
+        >
           {incomeBrackets.map((bracket) => (
             <Chip
               key={bracket.id}
               label={bracket.label}
               variant="compact"
+              selectionMode="single"
               selected={financials.incomeBracketId === bracket.id}
               onSelect={() =>
                 dispatch({ type: "SET_INCOME_BRACKET", value: bracket.id })

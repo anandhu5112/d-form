@@ -1,24 +1,25 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "motion/react";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { motion, useReducedMotion } from "motion/react";
 
 interface LandingCardProps {
   onGetStarted: () => void;
 }
 
 export default function LandingCard({ onGetStarted }: LandingCardProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
-    <div className="flex h-full w-full flex-col items-center justify-between px-4 pb-6 pt-10 md:px-10 md:pt-12">
+    <div className="flex h-full w-full flex-col items-center justify-between px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-10 md:px-10 md:pt-12">
       <div className="flex shrink-0 flex-col items-center gap-12">
         <div className="flex flex-col items-center gap-4">
           <div className="relative size-[60px] shrink-0 overflow-hidden rounded-full border-[3px] border-white/50 shadow-[0_9px_9px_0_rgba(39,54,84,0.09),0_2px_5px_0_rgba(39,54,84,0.1)]">
             <Image
               src="/assets/ashwin-avatar.png"
-              alt="Ashwin on Finance"
+              alt=""
               fill
+              priority
               className="object-cover"
               sizes="60px"
             />
@@ -29,27 +30,43 @@ export default function LandingCard({ onGetStarted }: LandingCardProps) {
             </p>
             <Image
               src="/assets/verified-badge.svg"
-              alt="Verified"
+              alt="Verified account"
               width={12}
               height={14}
             />
           </div>
         </div>
 
-        <p className="max-w-[280px] text-center font-geist text-[28px] font-medium tracking-[-0.56px] text-[#13a73a]">
+        <p className="max-w-[280px] text-center font-geist text-[28px] font-medium tracking-[-0.56px] text-[#00701e]">
           Let&apos;s build your portfolio together.
         </p>
       </div>
 
       <div className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden">
-        <video
-          src="/assets/coins.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="h-[820px] w-[820px] max-h-full max-w-full object-contain"
-        />
+        {/* Decorative loop. poster paints instantly so the panel is never blank
+            on a slow connection; reduced-motion users get the still frame. */}
+        {reduceMotion ? (
+          <Image
+            src="/assets/coins-poster.jpg"
+            alt=""
+            width={720}
+            height={720}
+            className="h-[820px] w-[820px] max-h-full max-w-full object-contain"
+          />
+        ) : (
+          <video
+            src="/assets/coins.mp4"
+            poster="/assets/coins-poster.jpg"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-hidden="true"
+            tabIndex={-1}
+            className="h-[820px] w-[820px] max-h-full max-w-full object-contain"
+          />
+        )}
       </div>
 
       <div className="flex w-full shrink-0 flex-col items-center gap-8">
@@ -57,20 +74,17 @@ export default function LandingCard({ onGetStarted }: LandingCardProps) {
           <p className="font-geist text-lg font-medium text-black">
             Help me know better about you
           </p>
-          <p className="font-geist text-xs text-[#13a73a]">
-            Takes less than 1 min
-          </p>
+          <p className="font-geist text-xs text-[#00701e]">Takes less than 1 min</p>
         </div>
         <motion.button
           type="button"
           onClick={onGetStarted}
-          whileTap={{ scale: 0.97 }}
-          whileHover={{ scale: 1.01 }}
+          whileTap={reduceMotion ? undefined : { scale: 0.97 }}
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
-          className={cn(
-            buttonVariants({ variant: "default", size: "default" }),
-            "h-12 w-full rounded-xl bg-[#008A25] font-dm-sans text-base font-medium tracking-[-0.64px] text-white hover:bg-[#008A25]/90"
-          )}
+          // Deliberately not buttonVariants: its default variant carries a bare
+          // `hover:bg-primary/80`, which Android latches on tap and leaves the
+          // primary CTA stuck dark grey.
+          className="flex h-12 w-full items-center justify-center rounded-xl bg-[#00701e] font-dm-sans text-base font-medium tracking-[-0.64px] text-white hover-darken"
         >
           Get Started
         </motion.button>

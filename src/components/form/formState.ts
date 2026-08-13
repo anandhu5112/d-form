@@ -31,6 +31,7 @@ export interface FormState {
   };
   submitting: boolean;
   submitted: boolean;
+  submitError: string | null;
 }
 
 export const initialFormState: FormState = {
@@ -53,6 +54,7 @@ export const initialFormState: FormState = {
   },
   submitting: false,
   submitted: false,
+  submitError: null,
 };
 
 export type FormAction =
@@ -67,7 +69,9 @@ export type FormAction =
   | { type: "SET_PAN_STATUS"; value: PanStatus }
   | { type: "TOGGLE_ADDRESS_PROOF"; value: AddressProof }
   | { type: "SUBMITTING" }
-  | { type: "SUBMITTED" };
+  | { type: "SUBMITTED" }
+  | { type: "SUBMIT_ERROR"; error: string }
+  | { type: "RESET" };
 
 export function formReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
@@ -129,9 +133,13 @@ export function formReducer(state: FormState, action: FormAction): FormState {
       return { ...state, financials: { ...state.financials, addressProofs: next } };
     }
     case "SUBMITTING":
-      return { ...state, submitting: true };
+      return { ...state, submitting: true, submitError: null };
     case "SUBMITTED":
       return { ...state, submitting: false, submitted: true };
+    case "SUBMIT_ERROR":
+      return { ...state, submitting: false, submitError: action.error };
+    case "RESET":
+      return initialFormState;
     default:
       return state;
   }

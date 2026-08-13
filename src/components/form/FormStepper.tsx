@@ -28,13 +28,17 @@ export default function FormStepper({ step, onStepChange }: FormStepperProps) {
       <StepperNav>
         {STEPS.map((s) => (
           <StepperItem key={s} step={s} disabled={s > step}>
-            <StepperTrigger>
-              <StepperIndicator className="size-7 border-[1.5px] border-[#e2e2e2] bg-white font-inter text-xs text-[#a4a4a4] data-[state=active]:border-black data-[state=active]:bg-black data-[state=active]:text-white data-[state=completed]:border-[#008A25] data-[state=completed]:bg-[#008A25] data-[state=completed]:text-white">
+            {/* Indicator stays 28px visually; the trigger carries a 44px hit area. */}
+            <StepperTrigger
+              className="min-h-11 min-w-11 items-center justify-center"
+              aria-label={`Step ${s} of ${TOTAL_STEPS}`}
+            >
+              <StepperIndicator className="size-7 border-[1.5px] border-[#c4c4c4] bg-white font-inter text-xs text-[#6b6b6b] data-[state=active]:border-black data-[state=active]:bg-black data-[state=active]:text-white data-[state=completed]:border-[#00701e] data-[state=completed]:bg-[#00701e] data-[state=completed]:text-white">
                 {s}
               </StepperIndicator>
             </StepperTrigger>
             {s < STEPS.length && (
-              <StepperSeparator className="bg-[#e2e2e2] group-data-[state=completed]/step:bg-[#008A25]" />
+              <StepperSeparator className="bg-[#e2e2e2] group-data-[state=completed]/step:bg-[#00701e]" />
             )}
           </StepperItem>
         ))}
