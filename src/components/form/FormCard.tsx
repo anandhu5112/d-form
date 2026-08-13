@@ -44,12 +44,11 @@ interface FormCardProps {
 export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
-  const [showRequirement, setShowRequirement] = useState(false);
+  const [requirementStep, setRequirementStep] = useState<number | null>(null);
   const [canScrollMore, setCanScrollMore] = useState(false);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 });
-    setShowRequirement(false);
   }, [state.step]);
 
   // Drives the bottom fade: without it, options below the fold are invisible on
@@ -98,14 +97,14 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
     // The button stays enabled on purpose: a disabled control can't be focused
     // and never explains itself, which is a dead end on a touch device.
     if (!isCurrentStepValid()) {
-      setShowRequirement(true);
+      setRequirementStep(state.step);
       const firstField = scrollRef.current?.querySelector<HTMLElement>(
         'input, [role="radio"], [role="checkbox"]'
       );
       firstField?.focus();
       return;
     }
-    setShowRequirement(false);
+    setRequirementStep(null);
 
     if (state.step < TOTAL_STEPS) {
       dispatch({ type: "SET_STEP", step: state.step + 1 });
@@ -154,7 +153,7 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
   const stepInvalid = !isCurrentStepValid();
   const message = state.submitError
     ? state.submitError
-    : showRequirement && stepInvalid
+    : requirementStep === state.step && stepInvalid
       ? STEP_REQUIREMENTS[state.step]
       : null;
 

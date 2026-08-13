@@ -1,10 +1,30 @@
+export type CurrencyCode =
+  | "AED"
+  | "USD"
+  | "GBP"
+  | "CAD"
+  | "AUD"
+  | "SGD"
+  | "SAR"
+  | "QAR"
+  | "KWD"
+  | "OMR"
+  | "BHD"
+  | "EUR"
+  | "NZD"
+  | "MYR"
+  | "HKD"
+  | "JPY"
+  | "ZAR"
+  | "INR";
+
 export interface Country {
   code: string;
   name: string;
   shortName: string;
   flag: string;
   dialCode: string;
-  currency: string;
+  currency: CurrencyCode;
 }
 
 export const COUNTRIES: Country[] = [
