@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducer } from "react";
-import { DEFAULT_COUNTRY, findCountry, type Country } from "@/lib/countries";
+import { DEFAULT_COUNTRY, findCountry, isOtherResidence, type Country } from "@/lib/countries";
 import { checkPhone } from "@/lib/phone";
 import type {
   AccountStatus,
@@ -106,10 +106,11 @@ export function formReducer(state: FormState, action: FormAction): FormState {
           countrySelected: true,
         },
         // WhatsApp defaults to the residence country, but a deliberate choice
-        // (e.g. UAE resident on an Indian number) is never overwritten.
+        // (e.g. UAE resident on an Indian number) is never overwritten. For
+        // "Other" there is nothing to default to: the code starts empty.
         phone: state.phone.countryTouched
           ? state.phone
-          : { ...state.phone, countryCode: action.value.code },
+          : { ...state.phone, countryCode: isOtherResidence(action.value) ? "" : action.value.code },
       };
     case "SET_NAME":
       return { ...state, identity: { ...state.identity, name: action.value } };
@@ -196,7 +197,10 @@ export function isNameValid(name: string) {
 }
 
 export function isStep1Valid(state: FormState) {
-  return state.identity.countrySelected && Boolean(findCountry(state.identity.country.code));
+  return (
+    state.identity.countrySelected &&
+    (isOtherResidence(state.identity.country) || Boolean(findCountry(state.identity.country.code)))
+  );
 }
 
 export function isStep2Valid(state: FormState) {

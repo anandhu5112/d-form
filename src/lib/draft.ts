@@ -12,7 +12,7 @@ import {
   initialFormState,
   type FormState,
 } from "@/components/form/formState";
-import { findCountry } from "@/lib/countries";
+import { OTHER_RESIDENCE, findCountry, isOtherResidence } from "@/lib/countries";
 import type { AccountStatus, AddressProof, PanStatus, Profession } from "@/lib/types";
 
 export const DRAFT_KEY = "desh-enquiry-draft-v1";
@@ -141,7 +141,10 @@ export function loadDraft(
     return null;
   }
 
-  const country = findCountry(typeof d.countryCode === "string" ? d.countryCode : null);
+  const country =
+    d.countryCode === OTHER_RESIDENCE.code
+      ? OTHER_RESIDENCE
+      : findCountry(typeof d.countryCode === "string" ? d.countryCode : null);
   const phoneCountry = findCountry(typeof d.phoneCountryCode === "string" ? d.phoneCountryCode : null);
   const f = (d.financials ?? {}) as Partial<FormState["financials"]>;
   const proofs = Array.isArray(f.addressProofs)
@@ -156,7 +159,9 @@ export function loadDraft(
       name: typeof d.name === "string" ? d.name.slice(0, 200) : "",
     },
     phone: {
-      countryCode: phoneCountry?.code ?? country?.code ?? initialFormState.phone.countryCode,
+      countryCode:
+        phoneCountry?.code ??
+        (isOtherResidence(country) ? "" : country?.code ?? initialFormState.phone.countryCode),
       countryTouched: Boolean(d.phoneCountryTouched && phoneCountry),
       number: typeof d.phoneNumber === "string" ? d.phoneNumber.slice(0, 40) : "",
     },

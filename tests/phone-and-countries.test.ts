@@ -56,6 +56,10 @@ describe("checkPhone", () => {
     assert.equal(result.status, "mismatch");
   });
 
+  it("reports a missing WhatsApp country separately", () => {
+    assert.deepEqual(checkPhone("079 123 45 67", ""), { status: "invalid", reason: "country" });
+  });
+
   it("treats blank as empty", () => {
     assert.deepEqual(checkPhone("   ", "AE"), { status: "empty" });
   });

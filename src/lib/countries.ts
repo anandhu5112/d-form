@@ -85,6 +85,24 @@ export function findCountry(code: string | null | undefined): Country | undefine
   return code ? BY_CODE.get(code) : undefined;
 }
 
+/**
+ * Residence "Other": the person lives outside the quick picks and does not
+ * name the country. Income bands are shown in INR and the WhatsApp code must
+ * be chosen by hand (the backend requires it for this residence).
+ */
+export const OTHER_RESIDENCE: Country = {
+  code: "OTHER",
+  name: "Other",
+  shortName: "Other",
+  flag: "🌐",
+  dialCode: "",
+  currency: "INR",
+};
+
+export function isOtherResidence(country: Country | null | undefined) {
+  return country?.code === OTHER_RESIDENCE.code;
+}
+
 // Placeholder until the user picks; never submitted (step 1 requires a pick).
 export const DEFAULT_COUNTRY = BY_CODE.get("AE")!;
 
