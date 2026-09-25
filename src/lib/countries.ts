@@ -1,3 +1,5 @@
+import { COUNTRY_DATA } from "@/lib/countryData";
+
 export type CurrencyCode =
   | "AED"
   | "USD"
@@ -27,35 +29,69 @@ export interface Country {
   currency: CurrencyCode;
 }
 
-export const COUNTRIES: Country[] = [
-  { code: "AE", name: "United Arab Emirates", shortName: "UAE", flag: "🇦🇪", dialCode: "+971", currency: "AED" },
-  { code: "US", name: "United States", shortName: "USA", flag: "🇺🇸", dialCode: "+1", currency: "USD" },
-  { code: "GB", name: "United Kingdom", shortName: "UK", flag: "🇬🇧", dialCode: "+44", currency: "GBP" },
-  { code: "CA", name: "Canada", shortName: "Canada", flag: "🇨🇦", dialCode: "+1", currency: "CAD" },
-  { code: "AU", name: "Australia", shortName: "Australia", flag: "🇦🇺", dialCode: "+61", currency: "AUD" },
-  { code: "SG", name: "Singapore", shortName: "Singapore", flag: "🇸🇬", dialCode: "+65", currency: "SGD" },
-  { code: "SA", name: "Saudi Arabia", shortName: "Saudi Arabia", flag: "🇸🇦", dialCode: "+966", currency: "SAR" },
-  { code: "QA", name: "Qatar", shortName: "Qatar", flag: "🇶🇦", dialCode: "+974", currency: "QAR" },
-  { code: "KW", name: "Kuwait", shortName: "Kuwait", flag: "🇰🇼", dialCode: "+965", currency: "KWD" },
-  { code: "OM", name: "Oman", shortName: "Oman", flag: "🇴🇲", dialCode: "+968", currency: "OMR" },
-  { code: "BH", name: "Bahrain", shortName: "Bahrain", flag: "🇧🇭", dialCode: "+973", currency: "BHD" },
-  { code: "DE", name: "Germany", shortName: "Germany", flag: "🇩🇪", dialCode: "+49", currency: "EUR" },
-  { code: "FR", name: "France", shortName: "France", flag: "🇫🇷", dialCode: "+33", currency: "EUR" },
-  { code: "NL", name: "Netherlands", shortName: "Netherlands", flag: "🇳🇱", dialCode: "+31", currency: "EUR" },
-  { code: "NZ", name: "New Zealand", shortName: "New Zealand", flag: "🇳🇿", dialCode: "+64", currency: "NZD" },
-  { code: "MY", name: "Malaysia", shortName: "Malaysia", flag: "🇲🇾", dialCode: "+60", currency: "MYR" },
-  { code: "HK", name: "Hong Kong", shortName: "Hong Kong", flag: "🇭🇰", dialCode: "+852", currency: "HKD" },
-  { code: "JP", name: "Japan", shortName: "Japan", flag: "🇯🇵", dialCode: "+81", currency: "JPY" },
-  { code: "ZA", name: "South Africa", shortName: "South Africa", flag: "🇿🇦", dialCode: "+27", currency: "ZAR" },
-  { code: "IN", name: "India", shortName: "India", flag: "🇮🇳", dialCode: "+91", currency: "INR" },
-];
+/**
+ * Residence country -> currency its income bands are shown in. Must match
+ * COUNTRY_CURRENCY in functions/_lib/income-bands.js (parent repo), which labels
+ * the same bands in the dashboard and Sheet. Everything else uses the
+ * Indian-standard INR bands on both sides.
+ */
+const COUNTRY_CURRENCY: Record<string, CurrencyCode> = {
+  IN: "INR",
+  US: "USD",
+  GB: "GBP",
+  AE: "AED",
+  SG: "SGD",
+  AU: "AUD",
+  CA: "CAD",
+  HK: "HKD",
+  MY: "MYR",
+  SA: "SAR",
+  QA: "QAR",
+  KW: "KWD",
+  BH: "BHD",
+  OM: "OMR",
+  NZ: "NZD",
+  JP: "JPY",
+  ZA: "ZAR",
+  // Euro area
+  AT: "EUR", BE: "EUR", HR: "EUR", CY: "EUR", EE: "EUR", FI: "EUR", FR: "EUR",
+  DE: "EUR", GR: "EUR", IE: "EUR", IT: "EUR", LV: "EUR", LT: "EUR", LU: "EUR",
+  MT: "EUR", NL: "EUR", PT: "EUR", SK: "EUR", SI: "EUR", ES: "EUR",
+};
 
-export const DEFAULT_COUNTRY = COUNTRIES[0];
+const SHORT_NAMES: Record<string, string> = {
+  AE: "UAE",
+  US: "USA",
+  GB: "UK",
+};
+
+/** Regional-indicator emoji for an ISO code ("AE" -> 🇦🇪). */
+function flagFor(code: string) {
+  return String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+}
+
+export const COUNTRIES: Country[] = COUNTRY_DATA.map(([code, name, dialCode]) => ({
+  code,
+  name,
+  shortName: SHORT_NAMES[code] ?? name,
+  flag: flagFor(code),
+  dialCode,
+  currency: COUNTRY_CURRENCY[code] ?? "INR",
+}));
+
+const BY_CODE = new Map(COUNTRIES.map((country) => [country.code, country]));
+
+export function findCountry(code: string | null | undefined): Country | undefined {
+  return code ? BY_CODE.get(code) : undefined;
+}
+
+// Placeholder until the user picks; never submitted (step 1 requires a pick).
+export const DEFAULT_COUNTRY = BY_CODE.get("AE")!;
 
 // Quick-select chips shown on the "Where do you currently live?" screen.
 export const QUICK_SELECT_COUNTRY_CODES = ["AE", "DE", "GB", "US", "CA", "NL"];
 export const QUICK_SELECT_COUNTRIES = QUICK_SELECT_COUNTRY_CODES.map(
-  (code) => COUNTRIES.find((c) => c.code === code)!
+  (code) => BY_CODE.get(code)!
 );
 
 export function findCountryByDialCode(dialCode: string): Country | undefined {

@@ -17,7 +17,9 @@ import {
   type FormAction,
   type FormState,
 } from "@/components/form/formState";
-import { submitForm } from "@/lib/submitForm";
+import { saveDraft } from "@/lib/draft";
+import { checkPhone, dialCodeFor } from "@/lib/phone";
+import { SubmitError, createSubmissionId, submitEnquiry } from "@/lib/submitForm";
 import type { EnquiryFormPayload } from "@/lib/types";
 
 const STEP_HEADLINES: Record<number, string> = {
@@ -30,7 +32,7 @@ const STEP_HEADLINES: Record<number, string> = {
 /** What's still missing on each step, phrased for the user rather than the dev. */
 const STEP_REQUIREMENTS: Record<number, string> = {
   1: "Please select the country you live in.",
-  2: "Please enter your name and a contact number of at least 6 digits.",
+  2: "Please enter your name and a valid WhatsApp number.",
   3: "Please select your profession and your annual income.",
   4: "Please answer all three questions, including at least one address document.",
 };
@@ -39,10 +41,40 @@ interface FormCardProps {
   state: FormState;
   dispatch: Dispatch<FormAction>;
   onClose: () => void;
+  onStartOver: () => void;
 }
 
-export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
+/** Builds the request from validated state; the server re-validates all of it. */
+function buildPayload(state: FormState, submissionId: string, submittedAt: string): EnquiryFormPayload {
+  const phoneCheck = checkPhone(state.phone.number, state.phone.countryCode);
+  return {
+    submissionId,
+    identity: {
+      name: state.identity.name.trim(),
+      countryCode: state.identity.country.code,
+      countryOther: null,
+    },
+    phone: {
+      countryCode: state.phone.countryCode,
+      dialCode: dialCodeFor(state.phone.countryCode),
+      number: phoneCheck.status === "valid" ? phoneCheck.nationalNumber : state.phone.number,
+    },
+    financials: {
+      profession: state.financials.profession,
+      incomeBracketId: state.financials.incomeBracketId,
+      accountStatus: state.financials.accountStatus,
+      panStatus: state.financials.panStatus,
+      addressProofs: state.financials.addressProofs,
+    },
+    submittedAt,
+  };
+}
+
+export default function FormCard({ state, dispatch, onClose, onStartOver }: FormCardProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Set synchronously on the first Finish, before React re-renders, so a
+  // second click/tap in the same frame cannot start another request.
+  const inFlightRef = useRef(false);
   const reduceMotion = useReducedMotion();
   const [requirementStep, setRequirementStep] = useState<number | null>(null);
   const [canScrollMore, setCanScrollMore] = useState(false);
@@ -86,6 +118,7 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
   };
 
   const handleBack = () => {
+    if (state.submitting) return;
     if (state.step === 1) {
       onClose();
       return;
@@ -93,13 +126,47 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
     dispatch({ type: "SET_STEP", step: state.step - 1 });
   };
 
+  const submit = async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+
+    // One id per enquiry, reused for every retry (including after a reload),
+    // so the server can recognise repeats and store a single lead.
+    const submissionId = state.submissionId ?? createSubmissionId();
+    const attemptAt = new Date().toISOString();
+    const submittedAt = state.firstAttemptAt ?? attemptAt;
+    dispatch({ type: "SUBMITTING", submissionId, attemptAt });
+    // Persist the id before the request leaves, in case the tab dies mid-flight.
+    saveDraft({ ...state, submissionId, firstAttemptAt: submittedAt }, { pending: true });
+
+    try {
+      const result = await submitEnquiry(buildPayload(state, submissionId, submittedAt));
+      dispatch({
+        type: "SUBMITTED",
+        notice: result.conflict
+          ? "We had already received your details from an earlier attempt. If anything changed, just tell us on WhatsApp."
+          : null,
+      });
+    } catch (error) {
+      const message =
+        error instanceof SubmitError
+          ? error.message
+          : "Something went wrong. Your answers are saved on this device — please try again.";
+      dispatch({ type: "SUBMIT_ERROR", error: message });
+      saveDraft({ ...state, submissionId, firstAttemptAt: submittedAt }, { pending: false });
+    } finally {
+      inFlightRef.current = false;
+    }
+  };
+
   const handlePrimaryAction = async () => {
+    if (state.submitting || inFlightRef.current) return;
     // The button stays enabled on purpose: a disabled control can't be focused
     // and never explains itself, which is a dead end on a touch device.
     if (!isCurrentStepValid()) {
       setRequirementStep(state.step);
       const firstField = scrollRef.current?.querySelector<HTMLElement>(
-        'input, [role="radio"], [role="checkbox"]'
+        'input[aria-invalid="true"], input, [role="radio"], [role="checkbox"]'
       );
       firstField?.focus();
       return;
@@ -111,38 +178,7 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
       return;
     }
 
-    dispatch({ type: "SUBMITTING" });
-    const payload: EnquiryFormPayload = {
-      identity: {
-        name: state.identity.name,
-        countryCode: state.identity.countrySelected ? state.identity.country.code : "",
-        countryOther: state.identity.countryOther.trim() || null,
-      },
-      phone: {
-        dialCode: state.identity.country.dialCode,
-        number: state.phone.number,
-      },
-      financials: {
-        profession: state.financials.profession,
-        incomeBracketId: state.financials.incomeBracketId,
-        accountStatus: state.financials.accountStatus,
-        panStatus: state.financials.panStatus,
-        addressProofs: state.financials.addressProofs,
-      },
-      submittedAt: new Date().toISOString(),
-    };
-    try {
-      await submitForm(payload);
-      dispatch({ type: "SUBMITTED" });
-    } catch (error) {
-      dispatch({
-        type: "SUBMIT_ERROR",
-        error:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong. Please try again.",
-      });
-    }
+    await submit();
   };
 
   if (state.submitted) {
@@ -160,6 +196,32 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
   return (
     <div className="flex h-full w-full flex-col">
       <div className="shrink-0 px-4 pt-6">
+        {state.restored && (
+          <div
+            role="status"
+            className="mb-4 flex items-center justify-between gap-3 rounded-[10px] bg-[#f3f7f4] px-3 py-2 font-geist text-xs text-[#393939]"
+          >
+            <span>We restored your answers from earlier on this device.</span>
+            <span className="flex shrink-0 gap-3">
+              <button
+                type="button"
+                onClick={onStartOver}
+                disabled={state.submitting}
+                className="font-medium text-[#00701e] underline underline-offset-2 disabled:opacity-45"
+              >
+                Start over
+              </button>
+              <button
+                type="button"
+                onClick={() => dispatch({ type: "DISMISS_RESTORED" })}
+                aria-label="Dismiss"
+                className="text-[#5f5f5f]"
+              >
+                ✕
+              </button>
+            </span>
+          </div>
+        )}
         <h1 className="font-geist text-[24px] font-medium tracking-[-0.56px] text-black">
           {STEP_HEADLINES[state.step]}
         </h1>
@@ -173,7 +235,13 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
         >
           <div className="flex min-h-full flex-col justify-center">
             {state.step === 1 && <Step1Country state={state} dispatch={dispatch} />}
-            {state.step === 2 && <Step2NameContact state={state} dispatch={dispatch} />}
+            {state.step === 2 && (
+              <Step2NameContact
+                state={state}
+                dispatch={dispatch}
+                showErrors={requirementStep === 2}
+              />
+            )}
             {state.step === 3 && (
               <Step3ProfessionIncome state={state} dispatch={dispatch} />
             )}
@@ -200,15 +268,20 @@ export default function FormCard({ state, dispatch, onClose }: FormCardProps) {
           <motion.button
             type="button"
             onClick={handleBack}
+            disabled={state.submitting}
             whileTap={reduceMotion ? undefined : { scale: 0.97 }}
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            className="flex h-12 w-full min-w-0 items-center justify-center rounded-xl border border-[#767676] bg-white px-8 font-inter text-base font-medium tracking-[-0.32px] text-[#393939] hover-darken"
+            className="flex h-12 w-full min-w-0 items-center justify-center rounded-xl border border-[#767676] bg-white px-8 font-inter text-base font-medium tracking-[-0.32px] text-[#393939] hover-darken disabled:opacity-45"
           >
             Back
           </motion.button>
           <motion.button
             type="button"
             onClick={handlePrimaryAction}
+            // Genuinely disabled while sending (not just aria-disabled), so
+            // repeat taps never reach the handler.
+            disabled={state.submitting}
+            aria-busy={state.submitting || undefined}
             aria-disabled={stepInvalid || state.submitting}
             data-inactive={stepInvalid || state.submitting ? "true" : undefined}
             whileTap={reduceMotion ? undefined : { scale: 0.97 }}
