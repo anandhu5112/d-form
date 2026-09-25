@@ -11,7 +11,7 @@ import {
   type FormAction,
   type FormState,
 } from "@/components/form/formState";
-import { findCountry } from "@/lib/countries";
+import { findCountry, isOtherResidence } from "@/lib/countries";
 import { checkPhone, detectInternationalNumber, sanitizePhoneInput } from "@/lib/phone";
 
 interface Step2NameContactProps {
@@ -32,8 +32,10 @@ export default function Step2NameContact({ state, dispatch, showErrors }: Step2N
   const [nameBlurred, setNameBlurred] = useState(false);
   const [phoneBlurred, setPhoneBlurred] = useState(false);
 
-  const phoneCountry = findCountry(phone.countryCode) ?? identity.country;
-  const phoneCheck = checkPhone(phone.number, phoneCountry.code);
+  // Undefined until chosen when the residence is "Other".
+  const phoneCountry = findCountry(phone.countryCode);
+  const phoneCheck = checkPhone(phone.number, phone.countryCode);
+  const codeMissing = !phoneCountry;
 
   const nameError =
     (showErrors || (nameBlurred && identity.name !== "")) && !isNameValid(identity.name)
@@ -42,12 +44,14 @@ export default function Step2NameContact({ state, dispatch, showErrors }: Step2N
 
   let phoneError: string | null = null;
   if (showErrors || (phoneBlurred && phone.number.trim() !== "")) {
-    if (phoneCheck.status === "empty") {
+    if (codeMissing) {
+      phoneError = "Choose your WhatsApp country code from the list first.";
+    } else if (phoneCheck.status === "empty") {
       phoneError = "Please enter your WhatsApp number.";
     } else if (phoneCheck.status === "invalid" && phoneCheck.reason === "characters") {
       phoneError = "Use digits only (spaces are fine).";
     } else if (phoneCheck.status === "invalid") {
-      phoneError = `That isn't a valid ${phoneCountry.name} number. Check the digits, or change the country code if your WhatsApp number is from another country.`;
+      phoneError = `That isn't a valid ${phoneCountry?.name ?? ""} number. Check the digits, or change the country code if your WhatsApp number is from another country.`;
     } else if (phoneCheck.status === "mismatch") {
       const detected = findCountry(phoneCheck.detectedCountry);
       phoneError = detected
@@ -112,17 +116,31 @@ export default function Step2NameContact({ state, dispatch, showErrors }: Step2N
           <div className="flex gap-2">
             <Popover open={codeOpen} onOpenChange={setCodeOpen}>
               <PopoverTrigger
-                className="flex h-12 shrink-0 items-center gap-1.5 rounded-[10px] border-[0.5px] border-white bg-[#f9f9f9] px-3 font-geist text-sm text-[#393939] hover-darken"
-                aria-label={`WhatsApp country code: ${phoneCountry.name} ${phoneCountry.dialCode}. Change`}
+                className={`flex h-12 shrink-0 items-center gap-1.5 rounded-[10px] border-[0.5px] bg-[#f9f9f9] px-3 font-geist text-sm text-[#393939] hover-darken ${
+                  codeMissing && phoneError ? "border-[#b3261e] ring-1 ring-[#b3261e]" : "border-white"
+                }`}
+                aria-label={
+                  phoneCountry
+                    ? `WhatsApp country code: ${phoneCountry.name} ${phoneCountry.dialCode}. Change`
+                    : "Choose your WhatsApp country code"
+                }
               >
-                <span aria-hidden="true" className="text-base">
-                  {phoneCountry.flag}
-                </span>
-                <span>{phoneCountry.dialCode}</span>
+                {phoneCountry ? (
+                  <>
+                    <span aria-hidden="true" className="text-base">
+                      {phoneCountry.flag}
+                    </span>
+                    <span>{phoneCountry.dialCode}</span>
+                  </>
+                ) : (
+                  <span className="text-[#6b6b6b]">Code</span>
+                )}
                 <ChevronDownIcon className="size-3.5 opacity-60" aria-hidden="true" />
               </PopoverTrigger>
               <PopoverContent align="start" sideOffset={8} className="w-[min(20rem,calc(100vw-2rem))] p-0">
+                {/* Remounted per opening so an abandoned search never carries over. */}
                 <CountrySearchList
+                  key={codeOpen ? "open" : "closed"}
                   showDialCode
                   placeholder="Search country or code"
                   onSelect={(country) => {
@@ -141,7 +159,7 @@ export default function Step2NameContact({ state, dispatch, showErrors }: Step2N
               enterKeyHint="done"
               inputMode="tel"
               maxLength={40}
-              aria-label={`WhatsApp number, country code ${phoneCountry.dialCode}`}
+              aria-label={`WhatsApp number, country code ${phoneCountry?.dialCode ?? "not chosen yet"}`}
               aria-describedby={phoneError ? `${phoneErrorId} ${phoneHintId}` : phoneHintId}
               aria-invalid={phoneError ? true : undefined}
               placeholder="WhatsApp number"
@@ -158,8 +176,9 @@ export default function Step2NameContact({ state, dispatch, showErrors }: Step2N
             </p>
           )}
           <p id={phoneHintId} className="font-geist text-xs text-[#5f5f5f]">
-            Please provide your WhatsApp number. Change the code if it&apos;s from a different
-            country than where you live.
+            {isOtherResidence(identity.country)
+              ? "Please provide your WhatsApp number. Tap Code to choose its country code."
+              : "Please provide your WhatsApp number. Change the code if it's from a different country than where you live."}
           </p>
         </div>
       </div>

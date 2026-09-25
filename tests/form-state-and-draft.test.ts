@@ -8,7 +8,8 @@ import {
   type FormAction,
   type FormState,
 } from "@/components/form/formState";
-import { findCountry } from "@/lib/countries";
+import { OTHER_RESIDENCE, findCountry } from "@/lib/countries";
+import { detectInternationalNumber } from "@/lib/phone";
 import { DRAFT_KEY, DRAFT_TTL_MS, clearDraft, loadDraft, saveDraft } from "@/lib/draft";
 
 function run(...actions: FormAction[]): FormState {
@@ -82,6 +83,27 @@ describe("formReducer", () => {
     assert.equal(isStep2Valid(state), false);
   });
 
+  it('"Other" residence: no pre-filled WhatsApp code, INR bands, code required on step 2', () => {
+    const state = run(
+      { type: "SET_COUNTRY", value: UAE },
+      { type: "SET_COUNTRY", value: OTHER_RESIDENCE },
+      { type: "SET_NAME", value: "Elsewhere Resident" },
+      { type: "SET_PHONE_NUMBER", value: "079 123 45 67" }
+    );
+    assert.equal(isStep1Valid(state), true);
+    assert.equal(state.identity.country.currency, "INR");
+    assert.equal(state.phone.countryCode, "", "the UAE default must not carry over");
+    assert.equal(isStep2Valid(state), false);
+    assert.equal(isStep2Valid(formReducer(state, { type: "SET_PHONE_COUNTRY", value: "CH" })), true);
+  });
+
+  it('"Other" residence: a pasted international number picks the code', () => {
+    const state = run({ type: "SET_COUNTRY", value: OTHER_RESIDENCE });
+    const detected = detectInternationalNumber("+41 79 123 45 67", state.phone.countryCode)!;
+    const next = formReducer(state, { type: "SET_PHONE", countryCode: detected.countryCode, number: detected.nationalNumber });
+    assert.equal(next.phone.countryCode, "CH");
+  });
+
   it("keeps the submission id across failed attempts", () => {
     let state = formReducer(completed(), { type: "SUBMITTING", submissionId: SUBMISSION_ID, attemptAt: "t1" });
     state = formReducer(state, { type: "SUBMIT_ERROR", error: "offline" });
@@ -122,6 +144,15 @@ describe("draft persistence (QA finding 8)", () => {
     assert.equal(loaded.state.phone.number, "98765 43210");
     assert.deepEqual(loaded.state.financials, state.financials);
     assert.equal(loaded.state.submissionId, SUBMISSION_ID);
+  });
+
+  it('restores an "Other" residence without inventing a WhatsApp code', () => {
+    const store = memoryStore();
+    saveDraft(run({ type: "SET_COUNTRY", value: OTHER_RESIDENCE }, { type: "SET_NAME", value: "Elsewhere" }), { store });
+    const loaded = loadDraft({ store })!;
+    assert.equal(loaded.state.identity.country.code, "OTHER");
+    assert.equal(loaded.state.identity.countrySelected, true);
+    assert.equal(loaded.state.phone.countryCode, "");
   });
 
   it("expires after the TTL and removes itself", () => {

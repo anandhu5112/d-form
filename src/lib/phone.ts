@@ -13,18 +13,18 @@ import {
 
 export type PhoneCheck =
   | { status: "empty" }
-  | { status: "invalid"; reason: "characters" | "number" }
+  | { status: "invalid"; reason: "characters" | "number" | "country" }
   | { status: "mismatch"; detectedCountry: string | null }
   | { status: "valid"; e164: string; nationalNumber: string };
 
-const ALLOWED = /^[+\d\s().\- ]*$/;
+const ALLOWED = /^[+\d\s().\-\u00a0]*$/;
 
 function asCountry(code: string): CountryCode | undefined {
   return isSupportedCountry(code) ? (code as CountryCode) : undefined;
 }
 
 function compact(raw: string) {
-  const stripped = raw.replace(/[\s().\- ]/g, "");
+  const stripped = raw.replace(/[\s().\-\u00a0]/g, "");
   return stripped.startsWith("00") ? `+${stripped.slice(2)}` : stripped;
 }
 
@@ -62,7 +62,7 @@ export function checkPhone(raw: string, countryCode: string): PhoneCheck {
   if (!ALLOWED.test(trimmed)) return { status: "invalid", reason: "characters" };
 
   const country = asCountry(countryCode);
-  if (!country) return { status: "invalid", reason: "number" };
+  if (!country) return { status: "invalid", reason: "country" };
 
   const candidate = compact(trimmed);
   if (candidate.indexOf("+", 1) !== -1) return { status: "invalid", reason: "characters" };
