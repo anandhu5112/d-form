@@ -9,7 +9,7 @@ interface SuccessStateProps {
   onDone: () => void;
 }
 
-export default function SuccessState({ onDone }: SuccessStateProps) {
+export default function SuccessState({ state, onDone }: SuccessStateProps) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -44,6 +44,9 @@ export default function SuccessState({ onDone }: SuccessStateProps) {
           <p className="font-geist text-xs text-[#5f5f5f]">
             We will get back to you shortly on WhatsApp.
           </p>
+          {state.submitNotice && (
+            <p className="max-w-[300px] font-geist text-xs text-[#393939]">{state.submitNotice}</p>
+          )}
         </div>
       </div>
 

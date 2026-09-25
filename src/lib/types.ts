@@ -16,13 +16,20 @@ export type Profession =
   | "other";
 
 export interface EnquiryFormPayload {
+  /** Stable for the life of one enquiry, including every retry. */
+  submissionId: string;
   identity: {
     name: string;
+    /** Resolved ISO 3166-1 alpha-2 residence country. */
     countryCode: string;
-    countryOther: string | null;
+    /** Kept for payload compatibility; free-text countries are no longer sent. */
+    countryOther: null;
   };
   phone: {
+    /** Country of the WhatsApp number; may differ from the residence country. */
+    countryCode: string;
     dialCode: string;
+    /** National significant number, digits only. */
     number: string;
   };
   financials: {

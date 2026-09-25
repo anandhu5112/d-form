@@ -1,25 +1,29 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Geist, DM_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const inter = Inter({
+// Self-hosted from npm (same families as before). next/font/google fetches CSS
+// at build time with a Chrome 104 user agent, which Google Fonts now answers
+// with extension-less URLs that Next 16.3's loader cannot parse, so every
+// fresh build failed. Local files also remove the build's network dependency.
+const inter = localFont({
   variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  src: "../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
+  weight: "100 900",
   display: "swap",
 });
 
-const geist = Geist({
+const geist = localFont({
   variable: "--font-geist",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  src: "../../node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2",
+  weight: "100 900",
   display: "swap",
 });
 
-const dmSans = DM_Sans({
+const dmSans = localFont({
   variable: "--font-dm-sans",
-  subsets: ["latin"],
-  weight: ["400", "500"],
+  src: "../../node_modules/@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2",
+  weight: "100 1000",
   display: "swap",
 });
 
