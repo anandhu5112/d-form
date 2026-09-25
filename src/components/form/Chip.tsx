@@ -1,13 +1,21 @@
 "use client";
 
+import type { ComponentProps } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
-interface ChipProps {
+// Extra button props (aria-*, ref, handlers) are passed through so a chip can
+// also act as a popover trigger via base-ui's `render` prop.
+type NativeButtonProps = Omit<
+  ComponentProps<typeof motion.button>,
+  "children" | "role" | "onClick" | "animate" | "initial" | "transition" | "whileTap"
+> & { onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void };
+
+interface ChipProps extends NativeButtonProps {
   label: string;
   icon?: string;
   selected: boolean;
-  onSelect: () => void;
+  onSelect?: () => void;
   variant?: "country" | "compact";
   /**
    * Screen-reader semantics for the group this chip belongs to.
@@ -26,6 +34,8 @@ export default function Chip({
   variant = "country",
   selectionMode = "single",
   className,
+  onClick,
+  ...rest
 }: ChipProps) {
   const reduceMotion = useReducedMotion();
   const unselectedBg = variant === "country" ? "rgba(235,235,235,0.32)" : "#f9f9f9";
@@ -35,7 +45,11 @@ export default function Chip({
   return (
     <motion.button
       type="button"
-      onClick={onSelect}
+      {...rest}
+      onClick={(event) => {
+        onSelect?.();
+        onClick?.(event);
+      }}
       role={role}
       aria-checked={selected}
       initial={false}
@@ -63,7 +77,7 @@ export default function Chip({
           {icon}
         </span>
       )}
-      {label}
+      <span className="truncate">{label}</span>
     </motion.button>
   );
 }

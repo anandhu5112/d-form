@@ -122,7 +122,9 @@ export default function Step2NameContact({ state, dispatch, showErrors }: Step2N
                 <ChevronDownIcon className="size-3.5 opacity-60" aria-hidden="true" />
               </PopoverTrigger>
               <PopoverContent align="start" sideOffset={8} className="w-[min(20rem,calc(100vw-2rem))] p-0">
+                {/* Remounted per opening so an abandoned search never carries over. */}
                 <CountrySearchList
+                  key={codeOpen ? "open" : "closed"}
                   showDialCode
                   placeholder="Search country or code"
                   onSelect={(country) => {
