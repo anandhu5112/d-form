@@ -44,6 +44,8 @@ export interface FormState {
   submitNotice: string | null;
   /** Answers were restored from this device's draft. */
   restored: boolean;
+  /** The WhatsApp number came from the link we sent and hasn't been edited. */
+  phonePrefilled: boolean;
 }
 
 export const initialFormState: FormState = {
@@ -72,6 +74,7 @@ export const initialFormState: FormState = {
   submitError: null,
   submitNotice: null,
   restored: false,
+  phonePrefilled: false,
 };
 
 export type FormAction =
@@ -81,6 +84,7 @@ export type FormAction =
   | { type: "SET_PHONE_COUNTRY"; value: string }
   | { type: "SET_PHONE_NUMBER"; value: string }
   | { type: "SET_PHONE"; countryCode: string; number: string }
+  | { type: "PREFILL_PHONE"; countryCode: string; number: string }
   | { type: "SET_PROFESSION"; value: Profession }
   | { type: "SET_INCOME_BRACKET"; value: string }
   | { type: "SET_ACCOUNT_STATUS"; value: AccountStatus }
@@ -118,13 +122,22 @@ export function formReducer(state: FormState, action: FormAction): FormState {
       return {
         ...state,
         phone: { ...state.phone, countryCode: action.value, countryTouched: true },
+        phonePrefilled: false,
       };
     case "SET_PHONE_NUMBER":
-      return { ...state, phone: { ...state.phone, number: action.value } };
+      return { ...state, phone: { ...state.phone, number: action.value }, phonePrefilled: false };
     case "SET_PHONE":
       return {
         ...state,
         phone: { countryCode: action.countryCode, countryTouched: true, number: action.number },
+        phonePrefilled: false,
+      };
+    case "PREFILL_PHONE":
+      // Counts as a deliberate choice, so picking a residence country later keeps this code.
+      return {
+        ...state,
+        phone: { countryCode: action.countryCode, countryTouched: true, number: action.number },
+        phonePrefilled: true,
       };
     case "SET_PROFESSION":
       return {

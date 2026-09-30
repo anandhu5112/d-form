@@ -8,6 +8,7 @@ import FormStepper from "@/components/form/FormStepper";
 import { useFormState } from "@/components/form/formState";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/draft";
 import { getSubmissionStatus } from "@/lib/submitForm";
+import { readPrefilledPhone, withoutPrefillParam } from "@/lib/prefill";
 
 export default function Home() {
   const [state, dispatch] = useFormState();
@@ -19,6 +20,9 @@ export default function Home() {
   const resumeChecked = useRef(false);
 
   useEffect(() => {
+    const prefill = readPrefilledPhone(window.location.search);
+    if (prefill) window.history.replaceState(window.history.state, "", withoutPrefillParam(window.location.href));
+
     const draft = loadDraft();
     if (draft) {
       dispatch({ type: "HYDRATE", state: draft.state });
@@ -43,6 +47,10 @@ export default function Home() {
           });
         });
       }
+    }
+    // A number typed on this device (or an enquiry mid-flight) wins over the link.
+    if (prefill && !draft?.pending && !draft?.state.phone.number.trim()) {
+      dispatch({ type: "PREFILL_PHONE", ...prefill });
     }
     // One-time sync from localStorage, which does not exist during SSR; the
     // extra render is unavoidable without a hydration mismatch.
