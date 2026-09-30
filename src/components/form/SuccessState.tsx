@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
 import type { FormState } from "@/components/form/formState";
+import { buildBookingUrl } from "@/lib/booking";
 
 interface SuccessStateProps {
   state: FormState;
@@ -38,11 +39,12 @@ export default function SuccessState({ state, onDone }: SuccessStateProps) {
             Thank you
           </p>
           <p className="font-geist text-lg font-medium leading-normal text-black">
-            You are one step closer to
-            <br />a wealthy future
+            One last step: pick a time
+            <br />for a quick 15-min call
           </p>
-          <p className="font-geist text-xs text-[#5f5f5f]">
-            We will get back to you shortly on WhatsApp.
+          <p className="max-w-[300px] font-geist text-xs text-[#5f5f5f]">
+            We&apos;ll understand what you need and walk you through the process. No rush, so
+            choose whatever time suits you. We&apos;ll also message you on WhatsApp.
           </p>
           {state.submitNotice && (
             <p className="max-w-[300px] font-geist text-xs text-[#393939]">{state.submitNotice}</p>
@@ -74,15 +76,25 @@ export default function SuccessState({ state, onDone }: SuccessStateProps) {
           </div>
         </div>
 
-        <motion.button
-          type="button"
-          onClick={onDone}
-          whileTap={reduceMotion ? undefined : { scale: 0.97 }}
-          transition={{ type: "spring", stiffness: 500, damping: 30 }}
-          className="flex h-12 w-full items-center justify-center rounded-xl bg-[#00701e] font-inter text-sm font-medium text-white hover-darken"
-        >
-          Done
-        </motion.button>
+        <div className="flex w-full flex-col items-center gap-2">
+          <motion.a
+            href={buildBookingUrl(state)}
+            target="_blank"
+            rel="noopener noreferrer"
+            whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            className="flex h-12 w-full items-center justify-center rounded-xl bg-[#00701e] font-inter text-sm font-medium text-white hover-darken"
+          >
+            Book a 15-min call
+          </motion.a>
+          <button
+            type="button"
+            onClick={onDone}
+            className="flex h-10 w-full items-center justify-center rounded-xl font-inter text-sm font-medium text-[#5f5f5f] hover:text-black"
+          >
+            I&apos;ll book later
+          </button>
+        </div>
       </div>
     </div>
   );
