@@ -176,7 +176,9 @@ export default function Step2NameContact({ state, dispatch, showErrors }: Step2N
             </p>
           )}
           <p id={phoneHintId} className="font-geist text-xs text-[#5f5f5f]">
-            {isOtherResidence(identity.country)
+            {state.phonePrefilled
+              ? "We've filled in the number you're messaging us from. Change it if you'd like us to use a different WhatsApp number."
+              : isOtherResidence(identity.country)
               ? "Please provide your WhatsApp number. Tap Code to choose its country code."
               : "Please provide your WhatsApp number. Change the code if it's from a different country than where you live."}
           </p>

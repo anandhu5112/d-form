@@ -68,7 +68,8 @@ export function hasProgress(state: FormState) {
   return (
     state.identity.countrySelected ||
     state.identity.name.trim() !== "" ||
-    state.phone.number.trim() !== "" ||
+    // A number that only came from the link isn't worth a draft (or a "restored" notice).
+    (state.phone.number.trim() !== "" && !state.phonePrefilled) ||
     f.profession !== null ||
     f.incomeBracketId !== null ||
     f.accountStatus !== null ||
